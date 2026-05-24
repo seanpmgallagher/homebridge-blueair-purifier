@@ -107,6 +107,11 @@
               "title": "Eve History",
               "description": "Enable logging of PM2.5 data for Eve app graphs. Requires the Eve app on iOS.",
               "type": "boolean"
+            },
+            "countdownToCleanAir": {
+              "title": "Countdown to Clean Air",
+              "description": "Expose the device's estimated minutes to clean air as a custom characteristic. Visible in Eve and Controller for HomeKit.",
+              "type": "boolean"
             }
           }
         }
@@ -139,7 +144,8 @@
             "devices[].temperatureSensor",
             "devices[].germShield",
             "devices[].nightMode",
-            "devices[].history"
+            "devices[].history",
+            "devices[].countdownToCleanAir"
           ]
         }
       ]

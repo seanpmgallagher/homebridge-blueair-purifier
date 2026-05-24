@@ -24,6 +24,7 @@ export type DeviceConfig = {
   germShield: boolean;
   nightMode: boolean;
   history: boolean;
+  countdownToCleanAir: boolean;
 };
 
 export enum Region {
@@ -60,4 +61,5 @@ export const defaultDeviceConfig: DeviceConfig = {
   germShield: false,
   nightMode: false,
   history: false,
+  countdownToCleanAir: false,
 };
