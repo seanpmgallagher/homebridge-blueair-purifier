@@ -157,6 +157,10 @@ export class AirPurifierAccessory {
       this.countdownCharacteristic = this.airQualityService.getCharacteristic(CountdownToCleanAir)
         || this.airQualityService.addCharacteristic(CountdownToCleanAir);
       this.countdownCharacteristic.onGet(this.getCountdownToCleanAir.bind(this));
+    } else if (this.airQualityService?.testCharacteristic(CountdownToCleanAir)) {
+      this.airQualityService.removeCharacteristic(
+        this.airQualityService.getCharacteristic(CountdownToCleanAir),
+      );
     }
 
     this.device.on('stateUpdated', this.updateCharacteristics.bind(this));
@@ -375,6 +379,7 @@ export class AirPurifierAccessory {
   }
 
   getCountdownToCleanAir(): CharacteristicValue {
-    return (this.device.state.aireta as number) || 0;
+    const value = Number(this.device.state.aireta) || 0;
+    return Math.max(0, Math.min(1440, value));
   }
 }
