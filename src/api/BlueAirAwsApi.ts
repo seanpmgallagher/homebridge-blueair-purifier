@@ -86,6 +86,7 @@ export default class BlueAirAwsApi {
     password: string,
     region: Region,
     private readonly logger: Logger,
+    private readonly verboseLogging: boolean = false,
   ) {
     const config = getAwsConfig(region);
     this.blueAirApiUrl = `https://${config.restApiId}.execute-api.${config.awsRegion}.amazonaws.com/prod/c`;
@@ -187,7 +188,9 @@ export default class BlueAirAwsApi {
           try {
             const telemetry = await this.getDeviceTelemetry(accountUuid, status.id, availableSensors);
             Object.assign(status.sensorData, telemetry);
-            this.logger.debug(`[${status.name}] Sensor data from telemetry: ${JSON.stringify(telemetry)}`);
+            if (this.verboseLogging) {
+              this.logger.info(`[${status.name}] Sensor data from telemetry: ${JSON.stringify(telemetry)}`);
+            }
           } catch (error) {
             this.logger.debug(`[${status.name}] Telemetry fallback failed: ${(error as Error).message}`);
           }
