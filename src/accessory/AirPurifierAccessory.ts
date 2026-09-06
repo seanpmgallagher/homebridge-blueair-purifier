@@ -258,8 +258,9 @@ export class AirPurifierAccessory {
       await this.device.setState('standby', false);
     }
 
-    if (speed > 0 && this.device.state.automode === true) {
-      await this.device.setState('automode', false);
+    const manualMode = this.autoModeStrategy.setAuto(false);
+    if (speed > 0 && manualMode.attribute in this.device.state && this.device.state[manualMode.attribute] !== manualMode.value) {
+      await this.device.setState(manualMode.attribute, manualMode.value);
     }
 
     await this.device.setState('fanspeed', speed);
