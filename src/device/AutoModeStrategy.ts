@@ -12,11 +12,11 @@ const defaultStrategy: AutoModeStrategy = {
 };
 
 // Blue Signature devices don't expose `automode` at all; preset switching is
-// done exclusively through `apsubmode` (0=manual_fan, 2=auto, 3=night, 4=eco).
+// done exclusively through `apsubmode` (1=manual_fan, 2=auto, 3=night, 4=eco).
 // https://github.com/dahlb/ha_blueair issues #348/#261 (Signature owners' debug logs).
 const blueSignatureStrategy: AutoModeStrategy = {
   isAuto: (state) => state.apsubmode === 2,
-  setAuto: (isAuto) => ({ attribute: 'apsubmode', value: isAuto ? 2 : 0 }),
+  setAuto: (isAuto) => ({ attribute: 'apsubmode', value: isAuto ? 2 : 1 }),
 };
 
 const AUTO_MODE_STRATEGIES: Partial<Record<BlueAirDeviceType, AutoModeStrategy>> = {
