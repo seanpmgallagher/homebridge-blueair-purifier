@@ -13,7 +13,7 @@ class CountdownToCleanAir extends Characteristic {
     super('Countdown to Clean Air', CountdownToCleanAir.UUID, {
       format: Formats.UINT16,
       perms: [Perms.PAIRED_READ, Perms.NOTIFY],
-      unit: 'minutes' as any,
+      unit: 'minutes',
       minValue: 0,
       maxValue: 1440,
     });
@@ -148,13 +148,16 @@ export class AirPurifierAccessory {
     }
 
     if (this.configDev.countdownToCleanAir && this.airQualityService) {
-      this.countdownCharacteristic = this.airQualityService.getCharacteristic(CountdownToCleanAir)
-        || this.airQualityService.addCharacteristic(CountdownToCleanAir);
+      // Register as optional first, otherwise getCharacteristic adds it through HAP's
+      // warning path and logs a characteristic warning on every restart. The optional
+      // list is persisted in the accessory cache, so only add it if it isn't there yet.
+      if (!this.airQualityService.optionalCharacteristics.some((c) => c.UUID === CountdownToCleanAir.UUID)) {
+        this.airQualityService.addOptionalCharacteristic(CountdownToCleanAir);
+      }
+      this.countdownCharacteristic = this.airQualityService.getCharacteristic(CountdownToCleanAir);
       this.countdownCharacteristic.onGet(this.getCountdownToCleanAir.bind(this));
     } else if (this.airQualityService?.testCharacteristic(CountdownToCleanAir)) {
-      this.airQualityService.removeCharacteristic(
-        this.airQualityService.getCharacteristic(CountdownToCleanAir),
-      );
+      this.airQualityService.removeCharacteristic(this.airQualityService.getCharacteristic(CountdownToCleanAir));
     }
 
     this.device.on('stateUpdated', this.updateCharacteristics.bind(this));
