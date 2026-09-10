@@ -1,24 +1,10 @@
-import { CharacteristicValue, Formats, Perms, PlatformAccessory, Service } from 'homebridge';
-import { Characteristic } from 'hap-nodejs';
+import { Characteristic, CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { BlueAirPlatform } from '../platform';
 import { BlueAirDevice } from '../device/BlueAirDevice';
 import { AutoModeStrategy, getAutoModeStrategy } from '../device/AutoModeStrategy';
 import { DeviceConfig } from '../platformUtils';
 import { FullBlueAirDeviceState } from '../api/BlueAirAwsApi';
-
-class CountdownToCleanAir extends Characteristic {
-  static readonly UUID = '2c216842-f525-4640-b5fa-f1a0da82b8c6';
-
-  constructor() {
-    super('Countdown to Clean Air', CountdownToCleanAir.UUID, {
-      format: Formats.UINT16,
-      perms: [Perms.PAIRED_READ, Perms.NOTIFY],
-      unit: 'minutes',
-      minValue: 0,
-      maxValue: 1440,
-    });
-  }
-}
+import { COUNTDOWN_TO_CLEAN_AIR_UUID, supportsCountdownToCleanAir } from './CountdownToCleanAir';
 
 export class AirPurifierAccessory {
   private service: Service;
@@ -147,17 +133,21 @@ export class AirPurifierAccessory {
       this.accessory.removeService(this.nightModeService);
     }
 
-    if (this.configDev.countdownToCleanAir && this.airQualityService) {
+    if (this.configDev.countdownToCleanAir && !supportsCountdownToCleanAir(this.device)) {
+      this.platform.log.warn(`[${this.device.name}] Countdown to Clean Air is enabled but the device does not report it, skipping`);
+    }
+
+    if (this.configDev.countdownToCleanAir && this.airQualityService && supportsCountdownToCleanAir(this.device)) {
       // Register as optional first, otherwise getCharacteristic adds it through HAP's
       // warning path and logs a characteristic warning on every restart. The optional
       // list is persisted in the accessory cache, so only add it if it isn't there yet.
-      if (!this.airQualityService.optionalCharacteristics.some((c) => c.UUID === CountdownToCleanAir.UUID)) {
-        this.airQualityService.addOptionalCharacteristic(CountdownToCleanAir);
+      if (!this.airQualityService.optionalCharacteristics.some((c) => c.UUID === COUNTDOWN_TO_CLEAN_AIR_UUID)) {
+        this.airQualityService.addOptionalCharacteristic(this.platform.CountdownToCleanAir);
       }
-      this.countdownCharacteristic = this.airQualityService.getCharacteristic(CountdownToCleanAir);
+      this.countdownCharacteristic = this.airQualityService.getCharacteristic(this.platform.CountdownToCleanAir);
       this.countdownCharacteristic.onGet(this.getCountdownToCleanAir.bind(this));
-    } else if (this.airQualityService?.testCharacteristic(CountdownToCleanAir)) {
-      this.airQualityService.removeCharacteristic(this.airQualityService.getCharacteristic(CountdownToCleanAir));
+    } else if (this.airQualityService?.testCharacteristic(this.platform.CountdownToCleanAir)) {
+      this.airQualityService.removeCharacteristic(this.airQualityService.getCharacteristic(this.platform.CountdownToCleanAir));
     }
 
     this.device.on('stateUpdated', this.updateCharacteristics.bind(this));
